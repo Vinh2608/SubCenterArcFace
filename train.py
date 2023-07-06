@@ -87,7 +87,7 @@ if __name__ == '__main__':
     # pretrained_dict = {k: v for k, v in pretrained_dict.items() if k in model_dict}
     # model_dict.update(pretrained_dict)
     # model.load_state_dict(model_dict)
-    checkpoint = torch.load(config.load_model_path)
+    checkpoint = torch.load(config.load_model_checkpoint)
     model.load_state_dict(checkpoint['model_state_dict'])
     # model.conv1.requires_grad = False
     # model.conv2_dw.requires_grad_ = False
