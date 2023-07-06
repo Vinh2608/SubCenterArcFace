@@ -17,6 +17,7 @@ best_loss = 39.594764709472656
 
 def train(model, loss_func, device, train_loader, optimizer, loss_optimizer, epoch):
     global best_loss
+    config = Config()
     model.train()
     for batch_idx, (data, labels) in enumerate(train_loader):
         data, labels = data.to(device), labels.to(device)
@@ -29,7 +30,7 @@ def train(model, loss_func, device, train_loader, optimizer, loss_optimizer, epo
         loss_optimizer.step()
         if batch_idx % 100 == 0:
             print("Epoch {} Iteration {}: Loss = {}".format(epoch, batch_idx, loss))
-            PATH = f'/content/checkpoints/model_{best_loss}_{epoch}.pt'
+            PATH = f'/content/SubCenterArcFace/checkpoints/{config.model}_model_{best_loss}_{epoch}.pt'
             if loss < best_loss:
                 torch.save({
                     'epoch': epoch,
@@ -62,7 +63,7 @@ if __name__ == '__main__':
     device = torch.device("cuda")
     config = Config()
     if config.model == 'resnet':
-        model = models.resnet101()(pretrained = True)
+        model = models.resnet101(pretrained = True)
         lin = model.fc
         new_lin = nn.Sequential(
             nn.Linear(lin.in_features, lin.out_features),
@@ -78,6 +79,7 @@ if __name__ == '__main__':
         for param in model.fc.parameters():
             # print(param)
             param.requires_grad = True
+        model = model.to(device)
     else:
         model = MobileFaceNet(512).to(device)
     # model_dict = model.state_dict()
