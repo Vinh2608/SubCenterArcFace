@@ -87,7 +87,7 @@ if __name__ == '__main__':
     # pretrained_dict = {k: v for k, v in pretrained_dict.items() if k in model_dict}
     # model_dict.update(pretrained_dict)
     # model.load_state_dict(model_dict)
-    checkpoint = torch.load('/content/SubCenterArcFace/checkpoints/model_0.04261918365955353_99.pt')
+    checkpoint = torch.load(config.load_model_path)
     model.load_state_dict(checkpoint['model_state_dict'])
     # model.conv1.requires_grad = False
     # model.conv2_dw.requires_grad_ = False
@@ -111,6 +111,7 @@ if __name__ == '__main__':
 
     optimizer = optim.Adam(model.parameters(), lr=0.01)
     optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+    initial_epoch = checkpoint['epoch']
     num_epochs = 100
 
     ### pytorch-metric-learning stuff ###
@@ -118,6 +119,6 @@ if __name__ == '__main__':
     loss_optimizer = torch.optim.Adam(loss_func.parameters(), lr=1e-4)
     accuracy_calculator = AccuracyCalculator(include=("precision_at_1",), k=1)
     ### pytorch-metric-learning stuff ###
-    for epoch in range(1, num_epochs + 1):
+    for epoch in range(initial_epoch, initial_epoch+ num_epochs + 1):
         train(model, loss_func, device, train_loader, optimizer, loss_optimizer, epoch)
         test(train_dataset, test_dataset, model, accuracy_calculator)

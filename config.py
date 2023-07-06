@@ -1,2 +1,3 @@
 class Config(object):
-    model = 'resnet'
+    model = 'mobilefacenet'
+    load_model_checkpoint = '/content/SubCenterArcFace/checkpoints/model_0.04261918365955353_99.pt'
