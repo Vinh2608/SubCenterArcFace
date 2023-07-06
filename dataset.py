@@ -24,7 +24,7 @@ class Dataset(data.Dataset):
         # normalize = T.Normalize(mean=[0.5, 0.5, 0.5],
         #                         std=[0.5, 0.5, 0.5])
 
-        normalize = T.Normalize(mean=[0.60746885, 0.47471561, 0.41313071], std=[[0.2621818,0.23118107,0.2242216 ]])
+        normalize = T.Normalize(mean=[0.60746885, 0.47471561, 0.41313071], std=[0.2621818,0.23118107,0.2242216])
 
         if self.phase == 'train':
             self.transforms = T.Compose([

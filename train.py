@@ -29,8 +29,9 @@ def train(model, loss_func, device, train_loader, optimizer, loss_optimizer, epo
         loss_optimizer.step()
         if batch_idx % 100 == 0:
             print("Epoch {} Iteration {}: Loss = {}".format(epoch, batch_idx, loss))
-            PATH = f'/content/SubCenterArcFace/checkpoints/{config.model}_model_{best_loss}_{epoch}.pt'
             if loss < best_loss:
+                best_loss = loss
+                PATH = f'/content/SubCenterArcFace/checkpoints/{config.model}_model_{best_loss}_{epoch}.pt'
                 torch.save({
                     'epoch': epoch,
                     'model_state_dict': model.state_dict(),
@@ -86,7 +87,8 @@ if __name__ == '__main__':
     # pretrained_dict = {k: v for k, v in pretrained_dict.items() if k in model_dict}
     # model_dict.update(pretrained_dict)
     # model.load_state_dict(model_dict)
-
+    checkpoint = torch.load('/content/SubCenterArcFace/checkpoints/model_0.04261918365955353_99.pt')
+    model.load_state_dict(checkpoint['model_state_dict'])
     # model.conv1.requires_grad = False
     # model.conv2_dw.requires_grad_ = False
     # model.conv_23.requires_grad = False
@@ -108,10 +110,11 @@ if __name__ == '__main__':
     test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=100)
 
     optimizer = optim.Adam(model.parameters(), lr=0.01)
+    optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
     num_epochs = 100
 
     ### pytorch-metric-learning stuff ###
-    loss_func = losses.SubCenterArcFaceLoss(num_classes=1021, embedding_size=512).to(device)
+    loss_func = losses.SubCenterArcFaceLoss(num_classes=1021, embedding_size=512, margin=0.2, scale=64).to(device)
     loss_optimizer = torch.optim.Adam(loss_func.parameters(), lr=1e-4)
     accuracy_calculator = AccuracyCalculator(include=("precision_at_1",), k=1)
     ### pytorch-metric-learning stuff ###
