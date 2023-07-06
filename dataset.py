@@ -1,3 +1,14 @@
+import os
+from PIL import Image
+import torch
+from torch.utils import data
+import numpy as np
+from torchvision import transforms as T
+import torchvision
+import cv2
+import sys
+
+
 class Dataset(data.Dataset):
 
     def __init__(self, root, data_list_file, phase='train', input_shape=(1, 128, 128)):
@@ -13,7 +24,7 @@ class Dataset(data.Dataset):
         # normalize = T.Normalize(mean=[0.5, 0.5, 0.5],
         #                         std=[0.5, 0.5, 0.5])
 
-        normalize = T.Normalize(mean=[0.5,0.5,0.5], std=[0.5,0.5,0.5])
+        normalize = T.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
 
         if self.phase == 'train':
             self.transforms = T.Compose([
@@ -29,12 +40,14 @@ class Dataset(data.Dataset):
                 normalize
             ])
 
+        self.targets = [int(sample.split()[1]) for sample in self.imgs]
+
     def __getitem__(self, index):
         sample = self.imgs[index]
         splits = sample.split()
         img_path = splits[0]
         data = Image.open(img_path)
-        #data = data.convert('L')
+        # data = data.convert('L')
         data = self.transforms(data)
         label = int(splits[1])
         return data.float(), label

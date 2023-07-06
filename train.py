@@ -5,11 +5,14 @@ import torch.optim as optim
 from torch.utils import data
 import torchvision
 from torchvision import datasets, transforms
-
+from model import MobileFaceNet
 from pytorch_metric_learning import losses, testers
 from pytorch_metric_learning.utils.accuracy_calculator import AccuracyCalculator
+from dataset import Dataset
 
 best_loss = 39.594764709472656
+
+
 def train(model, loss_func, device, train_loader, optimizer, loss_optimizer, epoch):
     global best_loss
     model.train()
@@ -26,12 +29,13 @@ def train(model, loss_func, device, train_loader, optimizer, loss_optimizer, epo
             print("Epoch {} Iteration {}: Loss = {}".format(epoch, batch_idx, loss))
             PATH = f'/content/checkpoints/model_{best_loss}_{epoch}.pt'
             if loss < best_loss:
-              torch.save({
-                'epoch': epoch,
-                'model_state_dict': model.state_dict(),
-                'optimizer_state_dict': optimizer.state_dict(),
-                'loss': best_loss,
-            }, PATH)
+                torch.save({
+                    'epoch': epoch,
+                    'model_state_dict': model.state_dict(),
+                    'optimizer_state_dict': optimizer.state_dict(),
+                    'loss': best_loss,
+                }, PATH)
+
 
 ### convenient function from pytorch-metric-learning ###
 def get_all_embeddings(dataset, model):
@@ -51,20 +55,8 @@ def test(train_set, test_set, model, accuracy_calculator):
     )
     print("Test set accuracy (Precision@3) = {}".format(accuracies["precision_at_1"]))
 
-if __name__ == "__main__":
-    dataset = Dataset('/content/VN-celeb_align_frontal_full','/content/label_full.txt', phase='train', input_shape=(3,128,128))
-    dataset2 = Dataset('/content/VN-celeb_align_frontal_full','/content/label_full.txt', phase='test', input_shape=(3,128,128))
-    train_size = int(0.6 * len(dataset))
-    test_size = len(dataset) - train_size
-    train_dataset, _ = torch.utils.data.random_split(dataset, [train_size, test_size])
-    _, test_dataset = torch.utils.data.random_split(dataset2, [train_size, test_size])
 
-    train_loader = data.DataLoader(train_dataset,
-                              batch_size=200,
-                              shuffle=True,
-                              num_workers=4)
-    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=100)
-
+if __name__ == '__main__':
     device = torch.device("cuda")
     model = MobileFaceNet(512).to(device)
     # model_dict = model.state_dict()
@@ -85,6 +77,14 @@ if __name__ == "__main__":
     # model.linear.requires_grad = True
     # model.bn.requires_grad = True
 
+    train_dataset = Dataset('VN-celeb_align_frontal_full', 'label_train.txt', phase='train', input_shape=(3, 128, 128))
+    test_dataset = Dataset('VN-celeb_align_frontal_full', 'label_test.txt', phase='test', input_shape=(3, 128, 128))
+    train_loader = data.DataLoader(train_dataset,
+                                   batch_size=200,
+                                   shuffle=True,
+                                   num_workers=4)
+    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=100)
+
     optimizer = optim.Adam(model.parameters(), lr=0.01)
     num_epochs = 100
 
@@ -93,3 +93,6 @@ if __name__ == "__main__":
     loss_optimizer = torch.optim.Adam(loss_func.parameters(), lr=1e-4)
     accuracy_calculator = AccuracyCalculator(include=("precision_at_1",), k=1)
     ### pytorch-metric-learning stuff ###
+    for epoch in range(1, num_epochs + 1):
+        train(model, loss_func, device, train_loader, optimizer, loss_optimizer, epoch)
+        test(train_dataset, test_dataset, model, accuracy_calculator)
