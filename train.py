@@ -5,10 +5,12 @@ import torch.optim as optim
 from torch.utils import data
 import torchvision
 from torchvision import datasets, transforms
+from torchvision import models
 from model import MobileFaceNet
 from pytorch_metric_learning import losses, testers
 from pytorch_metric_learning.utils.accuracy_calculator import AccuracyCalculator
 from dataset import Dataset
+from config import Config
 
 best_loss = 39.594764709472656
 
@@ -58,7 +60,26 @@ def test(train_set, test_set, model, accuracy_calculator):
 
 if __name__ == '__main__':
     device = torch.device("cuda")
-    model = MobileFaceNet(512).to(device)
+    config = Config()
+    if config.model == 'resnet':
+        model = models.resnet101()(pretrained = True)
+        lin = model.fc
+        new_lin = nn.Sequential(
+            nn.Linear(lin.in_features, lin.out_features),
+            nn.ReLU(),
+            nn.Linear(lin.out_features, 512)
+        )
+        model.fc = new_lin
+        # Freeze all of layers in the base model
+        for param in model.parameters():
+            # print(param)
+            param.requires_grad = False
+        # Unfreeze the last layer:
+        for param in model.fc.parameters():
+            # print(param)
+            param.requires_grad = True
+    else:
+        model = MobileFaceNet(512).to(device)
     # model_dict = model.state_dict()
     # pretrained_dict = torch.load('/content/mobilefacenet_s=64_m=0.2batch_size=200_align_frontal__70_acc905.pth')
     # pretrained_dict = {k: v for k, v in pretrained_dict.items() if k in model_dict}
