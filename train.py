@@ -11,6 +11,7 @@ from pytorch_metric_learning import losses, testers
 from pytorch_metric_learning.utils.accuracy_calculator import AccuracyCalculator
 from dataset import Dataset
 from config import Config
+from models import *
 
 best_loss = 39.594764709472656
 
@@ -62,33 +63,28 @@ def test(train_set, test_set, model, accuracy_calculator):
 if __name__ == '__main__':
     device = torch.device("cuda")
     config = Config()
-    if config.model == 'resnet':
-        model = models.resnet101(pretrained = True)
-        lin = model.fc
-        new_lin = nn.Sequential(
-            nn.Linear(lin.in_features, lin.out_features),
-            nn.ReLU(),
-            nn.Linear(lin.out_features, 512)
-        )
-        model.fc = new_lin
-        # Freeze all of layers in the base model
-        for param in model.parameters():
-            # print(param)
-            param.requires_grad = False
-        # Unfreeze the last layer:
-        for param in model.fc.parameters():
-            # print(param)
-            param.requires_grad = True
+    if config.model == 'resnet101':
+        model = resnet101(pretrained = True)
         model = model.to(device)
+    elif config.model == 'resnet18':
+        model = resnet_face18(use_se=opt.use_se)
+        model_dict = model.state_dict()
+        pretrained_dict = torch.load(opt.load_model_path)
+        pretrained_dict =  {k:v for k, v in pretrained_dict.items() if k in model_dict}
+        model_dict.update(pretrained_dict)
+        model.load_state_dict(model_dict)
+        for params in model.parameters():
+            params.trainable =  False
+        model.fc5.trainable = True
+        model.bn5.trainable = True
     else:
         model = MobileFaceNet(512).to(device)
-    # model_dict = model.state_dict()
-    # pretrained_dict = torch.load('/content/mobilefacenet_s=64_m=0.2batch_size=200_align_frontal__70_acc905.pth')
-    # pretrained_dict = {k: v for k, v in pretrained_dict.items() if k in model_dict}
-    # model_dict.update(pretrained_dict)
-    # model.load_state_dict(model_dict)
-    checkpoint = torch.load(config.load_model_checkpoint)
-    model.load_state_dict(checkpoint['model_state_dict'])
+        model_dict = model.state_dict()
+        pretrained_dict = torch.load('/content/mobilefacenet_s=64_m=0.2batch_size=200_align_frontal__70_acc905.pth')
+        pretrained_dict = {k: v for k, v in pretrained_dict.items() if k in model_dict}
+        model_dict.update(pretrained_dict)
+        model.load_state_dict(model_dict)
+    
     # model.conv1.requires_grad = False
     # model.conv2_dw.requires_grad_ = False
     # model.conv_23.requires_grad = False
@@ -117,7 +113,7 @@ if __name__ == '__main__':
     ### pytorch-metric-learning stuff ###
     loss_func = losses.SubCenterArcFaceLoss(num_classes=1021, embedding_size=512, margin=0.2, scale=64).to(device)
     loss_optimizer = torch.optim.Adam(loss_func.parameters(), lr=1e-4)
-    accuracy_calculator = AccuracyCalculator(include=("precision_at_1",), k=1)
+    accuracy_calculator = AccuracyCalculator(include=("precision_at_1",), k=3)
     ### pytorch-metric-learning stuff ###
     for epoch in range(initial_epoch, initial_epoch+ num_epochs + 1):
         train(model, loss_func, device, train_loader, optimizer, loss_optimizer, epoch)
