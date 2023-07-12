@@ -67,9 +67,9 @@ if __name__ == '__main__':
         model = resnet101(pretrained = True)
         model = model.to(device)
     elif config.model == 'resnet18':
-        model = resnet_face18(use_se=opt.use_se)
+        model = resnet_face18(use_se=config.use_se)
         model_dict = model.state_dict()
-        pretrained_dict = torch.load(opt.load_model_path)
+        pretrained_dict = torch.load(config.load_model_checkpoint)
         pretrained_dict =  {k:v for k, v in pretrained_dict.items() if k in model_dict}
         model_dict.update(pretrained_dict)
         model.load_state_dict(model_dict)
@@ -77,6 +77,7 @@ if __name__ == '__main__':
             params.trainable =  False
         model.fc5.trainable = True
         model.bn5.trainable = True
+        model = model.to(device)
     else:
         model = MobileFaceNet(512).to(device)
         model_dict = model.state_dict()
