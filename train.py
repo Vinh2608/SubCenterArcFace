@@ -6,7 +6,7 @@ from torch.utils import data
 import torchvision
 from torchvision import datasets, transforms
 from torchvision import models
-from model import MobileFaceNet
+from models.mobilefacenet import MobileFaceNet
 from pytorch_metric_learning import losses, testers
 from pytorch_metric_learning.utils.accuracy_calculator import AccuracyCalculator
 from dataset import Dataset
@@ -14,9 +14,12 @@ from config import Config
 from models import *
 
 best_loss = 39.594764709472656
-
+s = 64
+m = 0.2
 def train(model, loss_func, device, train_loader, optimizer, loss_optimizer, epoch):
     global best_loss
+    global s
+    global m
     config = Config()
     model.train()
     for batch_idx, (data, labels) in enumerate(train_loader):
@@ -32,7 +35,7 @@ def train(model, loss_func, device, train_loader, optimizer, loss_optimizer, epo
             print("Epoch {} Iteration {}: Loss = {}".format(epoch, batch_idx, loss))
             if loss < best_loss:
                 best_loss = loss
-                PATH = f'/content/SubCenterArcFace/checkpoints/{config.model}_model_{best_loss}_{epoch}.pt'
+                PATH = f'/content/SubCenterArcFace/checkpoints/{config.model}_model_s={s}_m={m}_{best_loss}_{epoch}_arcfaceloss.pt'
                 torch.save({
                     'epoch': epoch,
                     'model_state_dict': model.state_dict(),
@@ -57,10 +60,12 @@ def test(train_set, test_set, model, accuracy_calculator):
     accuracies = accuracy_calculator.get_accuracy(
         test_embeddings, test_labels, train_embeddings, train_labels, False
     )
-    print("Test set accuracy (Precision@3) = {}".format(accuracies["precision_at_1"]))
+    print("Test set accuracy (Precision@1) = {}".format(accuracies["precision_at_1"]))
 
 
 if __name__ == '__main__':
+    global s
+    global m
     device = torch.device("cuda")
     config = Config()
     if config.model == 'resnet101':
@@ -80,11 +85,11 @@ if __name__ == '__main__':
         model = model.to(device)
     else:
         model = MobileFaceNet(512).to(device)
-        model_dict = model.state_dict()
-        pretrained_dict = torch.load('/content/mobilefacenet_s=64_m=0.2batch_size=200_align_frontal__70_acc905.pth')
-        pretrained_dict = {k: v for k, v in pretrained_dict.items() if k in model_dict}
-        model_dict.update(pretrained_dict)
-        model.load_state_dict(model_dict)
+        # model_dict = model.state_dict()
+        # pretrained_dict = torch.load('/content/mobilefacenet_s=64_m=0.2batch_size=200_align_frontal__70_acc905.pth')
+        # pretrained_dict = {k: v for k, v in pretrained_dict.items() if k in model_dict}
+        # model_dict.update(pretrained_dict)
+        # model.load_state_dict(model_dict)
     
     # model.conv1.requires_grad = False
     # model.conv2_dw.requires_grad_ = False
@@ -107,14 +112,14 @@ if __name__ == '__main__':
     test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=100)
 
     optimizer = optim.Adam(model.parameters(), lr=0.01)
-    optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-    initial_epoch = checkpoint['epoch']
+    #optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+    initial_epoch = 1
     num_epochs = 100
 
     ### pytorch-metric-learning stuff ###
-    loss_func = losses.SubCenterArcFaceLoss(num_classes=1021, embedding_size=512, margin=0.2, scale=64).to(device)
+    loss_func = losses.ArcFaceLoss(num_classes=1021, embedding_size=512, margin=0.2, scale=64).to(device)
     loss_optimizer = torch.optim.Adam(loss_func.parameters(), lr=1e-4)
-    accuracy_calculator = AccuracyCalculator(include=("precision_at_1",), k=3)
+    accuracy_calculator = AccuracyCalculator(include=("precision_at_1",), k=1)
     ### pytorch-metric-learning stuff ###
     for epoch in range(initial_epoch, initial_epoch+ num_epochs + 1):
         train(model, loss_func, device, train_loader, optimizer, loss_optimizer, epoch)
