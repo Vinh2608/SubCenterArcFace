@@ -6,7 +6,7 @@ from torch.utils import data
 import torchvision
 from torchvision import datasets, transforms
 from torchvision import models
-from model import MobileFaceNet
+from models.mobilefacenet import MobileFaceNet
 from pytorch_metric_learning import losses, testers
 from pytorch_metric_learning.utils.accuracy_calculator import AccuracyCalculator
 from dataset import Dataset
