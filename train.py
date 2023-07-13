@@ -35,7 +35,7 @@ def train(model, loss_func, device, train_loader, optimizer, loss_optimizer, epo
             print("Epoch {} Iteration {}: Loss = {}".format(epoch, batch_idx, loss))
             if loss < best_loss:
                 best_loss = loss
-                PATH = f'/content/SubCenterArcFace/checkpoints/{config.model}_model_s={s}_m={m}_{best_loss}_{epoch}_arcfaceloss.pt'
+                PATH = f'/content/SubCenterArcFace/checkpoints/{config.model}_model_s={s}_m={m}_{best_loss}_{epoch}_arcfacelossfulllabel.pt'
                 torch.save({
                     'epoch': epoch,
                     'model_state_dict': model.state_dict(),
@@ -64,10 +64,9 @@ def test(train_set, test_set, model, accuracy_calculator):
 
 
 if __name__ == '__main__':
-    global s
-    global m
     device = torch.device("cuda")
     config = Config()
+    checkpoint = torch.load(config.load_model_checkpoint)
     if config.model == 'resnet101':
         model = resnet101(pretrained = True)
         model = model.to(device)
@@ -85,11 +84,11 @@ if __name__ == '__main__':
         model = model.to(device)
     else:
         model = MobileFaceNet(512).to(device)
-        # model_dict = model.state_dict()
-        # pretrained_dict = torch.load('/content/mobilefacenet_s=64_m=0.2batch_size=200_align_frontal__70_acc905.pth')
-        # pretrained_dict = {k: v for k, v in pretrained_dict.items() if k in model_dict}
-        # model_dict.update(pretrained_dict)
-        # model.load_state_dict(model_dict)
+        model_dict = model.state_dict()
+        pretrained_dict = checkpoint['model_state_dict']
+        pretrained_dict = {k: v for k, v in pretrained_dict.items() if k in model_dict}
+        model_dict.update(pretrained_dict)
+        model.load_state_dict(model_dict)
     
     # model.conv1.requires_grad = False
     # model.conv2_dw.requires_grad_ = False
@@ -103,7 +102,7 @@ if __name__ == '__main__':
     # model.linear.requires_grad = True
     # model.bn.requires_grad = True
 
-    train_dataset = Dataset('VN-celeb_align_frontal_full', 'label_train.txt', phase='train', input_shape=(3, 128, 128))
+    train_dataset = Dataset('VN-celeb_align_frontal_full', 'label_full.txt', phase='train', input_shape=(3, 128, 128))
     test_dataset = Dataset('VN-celeb_align_frontal_full', 'label_test.txt', phase='test', input_shape=(3, 128, 128))
     train_loader = data.DataLoader(train_dataset,
                                    batch_size=200,
@@ -112,12 +111,12 @@ if __name__ == '__main__':
     test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=100)
 
     optimizer = optim.Adam(model.parameters(), lr=0.01)
-    #optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-    initial_epoch = 1
+    optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+    initial_epoch = checkpoint['epoch']
     num_epochs = 100
 
     ### pytorch-metric-learning stuff ###
-    loss_func = losses.ArcFaceLoss(num_classes=1021, embedding_size=512, margin=0.2, scale=64).to(device)
+    loss_func = losses.SubCenterArcFaceLoss(num_classes=1021, embedding_size=512, margin=0.2, scale=64).to(device)
     loss_optimizer = torch.optim.Adam(loss_func.parameters(), lr=1e-4)
     accuracy_calculator = AccuracyCalculator(include=("precision_at_1",), k=1)
     ### pytorch-metric-learning stuff ###
