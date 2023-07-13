@@ -1,2 +1,5 @@
 result (1).tsv
 embedding/resultSubCenter.tsv
+embedding/resultSubCenterFullFull.tsv
+.gitignore
+embedding/resultSubCenterTrainOnly.tsv
