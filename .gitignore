@@ -3,3 +3,4 @@ embedding/resultSubCenter.tsv
 embedding/resultSubCenterFullFull.tsv
 .gitignore
 embedding/resultSubCenterTrainOnly.tsv
+embedding/resultSubCenterTestGrayScale.tsv
