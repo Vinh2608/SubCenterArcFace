@@ -7,6 +7,7 @@ import torchvision
 from torchvision import datasets, transforms
 from torchvision import models
 from models.mobilefacenet import MobileFaceNet
+from models import *
 from pytorch_metric_learning import losses, testers
 from pytorch_metric_learning.utils.accuracy_calculator import AccuracyCalculator
 from dataset import Dataset
@@ -77,7 +78,7 @@ def test(train_set, test_set, model, accuracy_calculator):
 if __name__ == '__main__':
     device = torch.device("cuda")
     config = Config()
-    #checkpoint = torch.load(config.load_model_checkpoint)
+    checkpoint = torch.load(config.load_model_checkpoint)
     if config.model == 'resnet101':
         model = resnet101(pretrained = True)
         model = model.to(device)
@@ -93,6 +94,9 @@ if __name__ == '__main__':
         model.fc5.trainable = True
         model.bn5.trainable = True
         model = model.to(device)
+    elif config.model == 'iresnet50':
+        model = get_model("r50", fp16=False)
+        model.load_state_dict(checkpoint['model_state_dict'])
     else:
         model = MobileFaceNet(512).to(device)
         # model_dict = model.state_dict()
@@ -113,15 +117,15 @@ if __name__ == '__main__':
     # model.linear.requires_grad = True
     # model.bn.requires_grad = True
 
-    train_dataset = Dataset('VN-celeb_align_frontal_full', 'label_train.txt', phase='train', input_shape=(3, 128, 128))
-    test_dataset = Dataset('VN-celeb_align_frontal_full', 'label_test.txt', phase='test', input_shape=(3, 128, 128))
+    train_dataset = Dataset('VN-celeb_align_frontal_full', 'label_train.txt', phase='train', input_shape=(3, 112, 112))
+    test_dataset = Dataset('VN-celeb_align_frontal_full', 'label_test.txt', phase='test', input_shape=(3, 112, 112))
     train_loader = data.DataLoader(train_dataset,
                                    batch_size=200,
                                    shuffle=True,
                                    num_workers=4)
     test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=100)
 
-    optimizer = optim.Adam(model.parameters(), lr=0.01)
+    optimizer = optim.Adam(model.parameters(), lr=0.1)
     #optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
     initial_epoch = 0
     num_epochs = 100
