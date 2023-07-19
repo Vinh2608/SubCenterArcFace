@@ -13,12 +13,15 @@ from pytorch_metric_learning.utils.accuracy_calculator import AccuracyCalculator
 from dataset import Dataset
 from config import Config
 from models import *
+import os
+from datetime import datetime
+import time
 
 best_loss = 10
 s = 64
 m = 0.2
 best_acc = 0.4
-def train(model, loss_func, device, train_loader, optimizer, loss_optimizer, epoch):
+def train(model, loss_func, device, train_loader, optimizer, loss_optimizer, epoch, log_fil2):
     global best_loss
     global s
     global m
@@ -33,6 +36,9 @@ def train(model, loss_func, device, train_loader, optimizer, loss_optimizer, epo
         loss.backward()
         optimizer.step()
         loss_optimizer.step()
+        time_str = time.asctime(time.localtime(time.time()))
+
+        log_file2.write('{} train epoch {} iter {} loss {}\n'.format(time_str, epoch, batch_idx, loss))
         if batch_idx % 100 == 0:
             print("Epoch {} Iteration {}: Loss = {}".format(epoch, batch_idx, loss))
             if loss < best_loss:
@@ -43,7 +49,7 @@ def train(model, loss_func, device, train_loader, optimizer, loss_optimizer, epo
                     'model_state_dict': model.state_dict(),
                     'optimizer_state_dict': optimizer.state_dict(),
                     'loss_optimizer_state_dict': loss_optimizer.state_dict(),
-                    'loss': loss_func.parameters(),
+                    'loss': loss_func.parameters()
                 }, PATH)
 
 ### convenient function from pytorch-metric-learning ###
@@ -51,9 +57,8 @@ def get_all_embeddings(dataset, model):
     tester = testers.BaseTester()
     return tester.get_all_embeddings(dataset, model)
 
-
 ### compute accuracy using AccuracyCalculator from pytorch-metric-learning ###
-def test(train_set, test_set, model, accuracy_calculator):
+def test(train_set, test_set, model, accuracy_calculator,epoch,log_file1):
     global best_acc
     train_embeddings, train_labels = get_all_embeddings(train_set, model)
     test_embeddings, test_labels = get_all_embeddings(test_set, model)
@@ -63,10 +68,17 @@ def test(train_set, test_set, model, accuracy_calculator):
     accuracies = accuracy_calculator.get_accuracy(
         test_embeddings, test_labels, train_embeddings, train_labels, False
     )
-    print("Test set accuracy (Precision@1) = {}".format(accuracies["precision_at_1"]))
+    print("Test set accuracy at epoch {} (Precision@1) = {}".format(epoch,accuracies["precision_at_1"]))
+    time_str = time.asctime(time.localtime(time.time()))
+    log_file1.write('{} train epoch {} acc {}\n'.format(time_str, epoch, accuracies["precision_at_1"]))
 
 
 if __name__ == '__main__':
+    runtime = datetime.now().strftime("%Y-%m-%dT%H-%M-%S")
+    log_file1 = open(os.path.join('log', '_s=' + str(s) + '_m=' + str(m) + "subcenter_test_r34.txt"), "w", encoding="utf-8")
+    log_file2 = open(os.path.join('log', '_s=' + str(s) + '_m=' + str(m) + "subcenter_train_r34.txt"), "w", encoding="utf-8")
+
+
     device = torch.device("cuda")
     config = Config()
     checkpoint = torch.load(config.load_model_checkpoint)
@@ -121,7 +133,7 @@ if __name__ == '__main__':
 
     optimizer = optim.Adam(model.parameters(), lr=0.1)
     #optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-    initial_epoch = 0#checkpoint['epoch']
+    initial_epoch = 0 #checkpoint['epoch']
     num_epochs = 100
 
     model.to(device)
@@ -131,8 +143,11 @@ if __name__ == '__main__':
     accuracy_calculator = AccuracyCalculator(include=("precision_at_1",), k=1)
     ### pytorch-metric-learning stuff ###
     for epoch in range(initial_epoch, initial_epoch + num_epochs + 1):
-        train(model, loss_func, device, train_loader, optimizer, loss_optimizer, epoch)
-        test(train_dataset, test_dataset, model, accuracy_calculator)
+        train(model, loss_func, device, train_loader, optimizer, loss_optimizer, epoch,log_file2)
+        test(train_dataset, test_dataset, model, accuracy_calculator,epoch, log_file1)
+    
+    log_file1.close()
+    log_file2.close()
     
     train_embeddings, train_labels = get_all_embeddings(train_dataset, model)    
     outliers1, _ = loss_func.get_outliers(train_embeddings, train_labels.squeeze(1))
