@@ -37,14 +37,13 @@ def train(model, loss_func, device, train_loader, optimizer, loss_optimizer, epo
             print("Epoch {} Iteration {}: Loss = {}".format(epoch, batch_idx, loss))
             if loss < best_loss:
                 best_loss = loss
-                PATH = f'/content/SubCenterArcFace/checkpoints/{config.model}_model_s={s}_m={m}_{best_loss}_{epoch}_arcfaceloss73.pt'
+                PATH = f'/content/SubCenterArcFace/checkpoints/{config.model}_model_s={s}_m={m}_{best_loss}_{epoch}_arcfaceloss73_train.pt'
                 torch.save({
                     'epoch': epoch,
                     'model_state_dict': model.state_dict(),
                     'optimizer_state_dict': optimizer.state_dict(),
                     'loss': best_loss,
                 }, PATH)
-
 
 ### convenient function from pytorch-metric-learning ###
 def get_all_embeddings(dataset, model):
@@ -66,11 +65,10 @@ def test(train_set, test_set, model, accuracy_calculator):
     print("Test set accuracy (Precision@1) = {}".format(accuracies["precision_at_1"]))
     if accuracies["precision_at_1"] > best_acc:
         best_acc = accuracies["precision_at_1"]
-        PATH = f'/content/SubCenterArcFace/checkpoints/{config.model}_model_s={s}_m={m}_{best_loss}_acc{best_acc}_{epoch}_arcfaceloss73.pt'
+        PATH = f'/content/SubCenterArcFace/checkpoints/{config.model}_model_s={s}_m={m}_{best_loss}_acc{best_acc}_{epoch}_arcfaceloss73_test.pt'
         torch.save({
             'epoch': epoch,
             'model_state_dict': model.state_dict(),
-            'optimizer_state_dict': optimizer.state_dict(),
             'loss': best_loss,
         }, PATH)
 
