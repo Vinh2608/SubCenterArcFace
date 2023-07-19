@@ -4,3 +4,6 @@ embedding/resultSubCenterFullFull.tsv
 .gitignore
 embedding/resultSubCenterTrainOnly.tsv
 embedding/resultSubCenterTestGrayScale.tsv
+checkpoints/iresnet50_model_s=64_m=0.2_6.760599613189697_acc0.6274631819124663_48_arcfaceloss73.pt
+checkpoints/iresnet50_model_s=64_m=0.2_6.792593002319336_acc0.6046463389338311_34_arcfaceloss73.pt
+embedding/resultSubCenterTestR50.tsv
