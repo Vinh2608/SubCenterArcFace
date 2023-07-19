@@ -7,3 +7,7 @@ embedding/resultSubCenterTestGrayScale.tsv
 checkpoints/iresnet50_model_s=64_m=0.2_6.760599613189697_acc0.6274631819124663_48_arcfaceloss73.pt
 checkpoints/iresnet50_model_s=64_m=0.2_6.792593002319336_acc0.6046463389338311_34_arcfaceloss73.pt
 embedding/resultSubCenterTestR50.tsv
+checkpoints/iresnet34_model_s=64_m=0.2_6.767510890960693_acc0.6100394109105994_43_arcfaceloss73_test.pt
+.gitignore
+checkpoints/iresnet34_model_s=64_m=0.2_6.789340972900391_acc0.6050611906243518_37_arcfaceloss73_test.pt
+checkpoints/iresnet34_model_s=64_m=0.2_6.789340972900391_acc0.5965567309686787_36_arcfaceloss73_test.pt
