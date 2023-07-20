@@ -49,7 +49,7 @@ def train(model, loss_func, device, train_loader, optimizer, loss_optimizer, epo
                     'model_state_dict': model.state_dict(),
                     'optimizer_state_dict': optimizer.state_dict(),
                     'loss_optimizer_state_dict': loss_optimizer.state_dict(),
-                    'loss': loss_func.parameters()
+                    #'loss': list(loss_func.parameters())
                 }, PATH)
 
 ### convenient function from pytorch-metric-learning ###
@@ -70,13 +70,13 @@ def test(train_set, test_set, model, accuracy_calculator,epoch,log_file1):
     )
     print("Test set accuracy at epoch {} (Precision@1) = {}".format(epoch,accuracies["precision_at_1"]))
     time_str = time.asctime(time.localtime(time.time()))
-    log_file1.write('{} train epoch {} acc {}\n'.format(time_str, epoch, accuracies["precision_at_1"]))
+    log_file1.write('{} test epoch {} acc {}\n'.format(time_str, epoch, accuracies["precision_at_1"]))
 
 
 if __name__ == '__main__':
     runtime = datetime.now().strftime("%Y-%m-%dT%H-%M-%S")
-    log_file1 = open(os.path.join('log', '_s=' + str(s) + '_m=' + str(m) + "subcenter_test_r34.txt"), "w", encoding="utf-8")
-    log_file2 = open(os.path.join('log', '_s=' + str(s) + '_m=' + str(m) + "subcenter_train_r34.txt"), "w", encoding="utf-8")
+    log_file1 = open(os.path.join('logs', '_s=' + str(s) + '_m=' + str(m) + "subcenter_test_r34.txt"), "w", encoding="utf-8")
+    log_file2 = open(os.path.join('logs', '_s=' + str(s) + '_m=' + str(m) + "subcenter_train_r34.txt"), "w", encoding="utf-8")
 
 
     device = torch.device("cuda")
