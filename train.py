@@ -16,6 +16,7 @@ from models import *
 import os
 from datetime import datetime
 import time
+import numpy as np
 
 best_loss = 10
 s = 64
@@ -153,15 +154,17 @@ if __name__ == '__main__':
     outliers1, _ = loss_func.get_outliers(train_embeddings, train_labels.squeeze(1))
     print(f"There are {len(outliers1)} outliers")
     
+    train_imgs = train_dataset.imgs
     for i in range(len(outliers1)):
-        del train_dataset.imgs[outliers1[i]]
+        train_imgs = np.delete(train_imgs,outliers1[i])
 
     test_embeddings, test_labels = get_all_embeddings(test_dataset, model)
     outliers2, _ = loss_func.get_outliers(test_embeddings, test_labels.squeeze(1))
     print(f"There are {len(outliers2)} outliers")
 
+    test_imgs = test_dataset.imgs
     for i in range(len(outliers2)):
-        del test_dataset.imgs[outliers2[i]]    
+        test_imgs = np.delete(test_imgs, outliers2[i])    
         
     torch.save({
         'train_dataset_ls': train_dataset.imgs,
