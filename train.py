@@ -44,7 +44,7 @@ def train(model, loss_func, device, train_loader, optimizer, loss_optimizer, epo
             print("Epoch {} Iteration {}: Loss = {}".format(epoch, batch_idx, loss))
             if loss < best_loss:
                 best_loss = loss
-                PATH = f'/content/SubCenterArcFace/checkpoints/{config.model}_model_s={s}_m={m}_{best_loss}_{epoch}_subcenter_train.pt'
+                PATH = f'/content/SubCenterArcFace/checkpoints/{config.model}_model_s={s}_m={m}_{best_loss}_{epoch}_subcenter_train_k1.pt'
                 torch.save({
                     'epoch': epoch,
                     'model_state_dict': model.state_dict(),
@@ -78,7 +78,6 @@ if __name__ == '__main__':
     runtime = datetime.now().strftime("%Y-%m-%dT%H-%M-%S")
     log_file1 = open(os.path.join('logs', '_s=' + str(s) + '_m=' + str(m) + "subcenter_test_r34.txt"), "w", encoding="utf-8")
     log_file2 = open(os.path.join('logs', '_s=' + str(s) + '_m=' + str(m) + "subcenter_train_r34.txt"), "w", encoding="utf-8")
-
 
     device = torch.device("cuda")
     config = Config()
@@ -132,15 +131,16 @@ if __name__ == '__main__':
                                    num_workers=4)
     test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=50)
 
+    model.to(device)
     optimizer = optim.Adam(model.parameters(), lr=0.1)
     #optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-    initial_epoch = 0 #checkpoint['epoch']
+    initial_epoch = 0
     num_epochs = 100
 
-    model.to(device)
     ### pytorch-metric-learning stuff ###
-    loss_func = losses.SubCenterArcFaceLoss(num_classes=1021, embedding_size=512, margin=m, scale=m).to(device)
+    loss_func = losses.SubCenterArcFaceLoss(num_classes=1021, embedding_size=512, margin=m, scale=s,k=1).to(device)
     loss_optimizer = torch.optim.Adam(loss_func.parameters(), lr=1e-2)
+    #loss_optimizer.load_state_dict(checkpoint['loss_optimizer_state_dict'])
     accuracy_calculator = AccuracyCalculator(include=("precision_at_1",), k=1)
     ### pytorch-metric-learning stuff ###
     for epoch in range(initial_epoch, initial_epoch + num_epochs + 1):
@@ -155,18 +155,19 @@ if __name__ == '__main__':
     print(f"There are {len(outliers1)} outliers")
     
     train_imgs = train_dataset.imgs
+    train_imgs = train_imgs.cpu()
     for i in range(len(outliers1)):
         train_imgs = np.delete(train_imgs,outliers1[i])
 
-    test_embeddings, test_labels = get_all_embeddings(test_dataset, model)
-    outliers2, _ = loss_func.get_outliers(test_embeddings, test_labels.squeeze(1))
-    print(f"There are {len(outliers2)} outliers")
+    # test_embeddings, test_labels = get_all_embeddings(test_dataset, model)
+    # outliers2, _ = loss_func.get_outliers(test_embeddings, test_labels.squeeze(1))
+    # print(f"There are {len(outliers2)} outliers")
 
-    test_imgs = test_dataset.imgs
-    for i in range(len(outliers2)):
-        test_imgs = np.delete(test_imgs, outliers2[i])    
+    # test_imgs = test_dataset.imgs
+    # for i in range(len(outliers2)):
+    #     test_imgs = np.delete(test_imgs, outliers2[i])    
         
     torch.save({
         'train_dataset_ls': train_dataset.imgs,
-        'test_dataset_ls': test_dataset.imgs
-        },'/content/SubCenterArcFace/outliers/train_test_remove_outlier.pt' )
+        #'test_dataset_ls': test_dataset.imgs
+        },'/content/SubCenterArcFace/outliers/train_remove_outlier.pt' )

@@ -1,4 +1,4 @@
 class Config(object):
-    model = 'iresnet50'
-    load_model_checkpoint = '/content/SubCenterArcFace/checkpoints/model_0.04261918365955353_99.pt'
+    model = 'iresnet34'
+    load_model_checkpoint = '/content/SubCenterArcFace/backboneR34.pth'
     use_se = True
