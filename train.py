@@ -44,7 +44,7 @@ def train(model, loss_func, device, train_loader, optimizer, loss_optimizer, epo
             print("Epoch {} Iteration {}: Loss = {}".format(epoch, batch_idx, loss))
             if loss < best_loss:
                 best_loss = loss
-                PATH = f'/content/SubCenterArcFace/checkpoints/{config.model}_model_s={s}_m={m}_{best_loss}_{epoch}_subcenter_train_k1.pt'
+                PATH = f'/content/SubCenterArcFace/checkpoints/{config.model}_model_s={s}_m={m}_{best_loss}_{epoch}_subcenter_train_k3.pt'
                 torch.save({
                     'epoch': epoch,
                     'model_state_dict': model.state_dict(),
@@ -138,10 +138,10 @@ if __name__ == '__main__':
     num_epochs = 100
 
     ### pytorch-metric-learning stuff ###
-    loss_func = losses.SubCenterArcFaceLoss(num_classes=1021, embedding_size=512, margin=m, scale=s,k=1).to(device)
+    loss_func = losses.SubCenterArcFaceLoss(num_classes=1021, embedding_size=512, margin=m, scale=s).to(device)
     loss_optimizer = torch.optim.Adam(loss_func.parameters(), lr=1e-2)
     #loss_optimizer.load_state_dict(checkpoint['loss_optimizer_state_dict'])
-    accuracy_calculator = AccuracyCalculator(include=("precision_at_1",), k=1)
+    accuracy_calculator = AccuracyCalculator(include=("precision_at_1",), k=3)
     ### pytorch-metric-learning stuff ###
     for epoch in range(initial_epoch, initial_epoch + num_epochs + 1):
         train(model, loss_func, device, train_loader, optimizer, loss_optimizer, epoch,log_file2)
