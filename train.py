@@ -155,7 +155,6 @@ if __name__ == '__main__':
     print(f"There are {len(outliers1)} outliers")
     
     train_imgs = train_dataset.imgs
-    train_imgs = train_imgs.cpu()
     for i in range(len(outliers1)):
         train_imgs = np.delete(train_imgs,outliers1[i])
 
@@ -168,6 +167,6 @@ if __name__ == '__main__':
     #     test_imgs = np.delete(test_imgs, outliers2[i])    
         
     torch.save({
-        'train_dataset_ls': train_dataset.imgs,
+        'train_dataset_ls': train_imgs,
         #'test_dataset_ls': test_dataset.imgs
         },'/content/SubCenterArcFace/outliers/train_remove_outlier.pt' )
