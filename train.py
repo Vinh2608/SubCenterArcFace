@@ -141,7 +141,7 @@ if __name__ == '__main__':
     loss_func = losses.SubCenterArcFaceLoss(num_classes=1021, embedding_size=512, margin=m, scale=s).to(device)
     loss_optimizer = torch.optim.Adam(loss_func.parameters(), lr=1e-2)
     #loss_optimizer.load_state_dict(checkpoint['loss_optimizer_state_dict'])
-    accuracy_calculator = AccuracyCalculator(include=("precision_at_1",), k=3)
+    accuracy_calculator = AccuracyCalculator(include=("precision_at_1",), k=1)
     ### pytorch-metric-learning stuff ###
     for epoch in range(initial_epoch, initial_epoch + num_epochs + 1):
         train(model, loss_func, device, train_loader, optimizer, loss_optimizer, epoch,log_file2)

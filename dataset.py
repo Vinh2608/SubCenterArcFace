@@ -11,7 +11,7 @@ import sys
 
 class Dataset(data.Dataset):
 
-    def __init__(self, root, data_list_file, phase='train', input_shape=(1, 128, 128)):
+    def __init__(self, root, data_list_file, phase='train', input_shape=(1, 112, 112)):
         self.phase = phase
         self.input_shape = input_shape
 
@@ -30,6 +30,7 @@ class Dataset(data.Dataset):
             self.transforms = T.Compose([
                 T.RandomCrop(self.input_shape[1:]),
                 T.RandomHorizontalFlip(),
+                T.RandomVerticalFlip(),
                 T.ToTensor(),
                 normalize
             ])

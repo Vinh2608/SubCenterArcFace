@@ -11,3 +11,15 @@ checkpoints/iresnet34_model_s=64_m=0.2_6.767510890960693_acc0.6100394109105994_4
 .gitignore
 checkpoints/iresnet34_model_s=64_m=0.2_6.789340972900391_acc0.6050611906243518_37_arcfaceloss73_test.pt
 checkpoints/iresnet34_model_s=64_m=0.2_6.789340972900391_acc0.5965567309686787_36_arcfaceloss73_test.pt
+embedding/resultSubCenterTestR34Test.tsv
+.gitignore
+checkpoints/iresnet34_model_s=64_m=0.2_6.745278358459473_67_subcenter_train.pt
+checkpoints/iresnet34_model_s=64_m=0.2_6.785623550415039_37_subcenter_train.pt
+checkpoints/iresnet34_model_s=32_m=0.2_0.0572032630443573_26_subcenter_train_k3.pt
+.gitignore
+checkpoints/iresnet34_model_s=30_m=0.5_0.004001084249466658_91_acc6359_subcenter_train_k3.pt
+checkpoints/iresnet34_model_s=30_m=0.5_0.007825314067304134_55_acc591_subcenter_train_k3.pt
+checkpoints/iresnet34_model_s=30_m=0.5_0.032521724700927734_97_acc65_subcenter_train_k1.pt
+checkpoints/iresnet34_model_s=30_m=0.5_0.023411080241203308_99_acc666_subcenter_train_k1.pt
+checkpoints/iresnet34_model_s=30_m=0.5_0.004839978646486998_74_acc616_subcenter_train_k3.pt
+embedding/resultSubCenterTestR34Train.tsv
